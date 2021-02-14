@@ -11,7 +11,6 @@ app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
 
-# templates = Jinja2Templates(directory="templates")
 
 class StockRequest(BaseModel):
     ticker: str
@@ -25,38 +24,38 @@ def get_db():
         db.close()
 
 
-def fetch_crypto_data(id: int):
+def fetch_stock_data(id: int):
     db = SessionLocal()
-    crypto = db.query(StockItem).filter(StockItem.id == id).first()
+    stock = db.query(StockItem).filter(StockItem.id == id).first()
 
-    yahoo_data = yf.Ticker(crypto.ticker)
+    yahoo_data = yf.Ticker(stock.ticker)
 
-    crypto.ma200 = yahoo_data.info['twoHundredDayAverage']
-    crypto.ma50 = yahoo_data.info['fiftyDayAverage']
-    crypto.price = yahoo_data.info['previousClose']
-    crypto.shortname = yahoo_data.info['shortName']
+    stock.ma200 = yahoo_data.info['twoHundredDayAverage']
+    stock.ma50 = yahoo_data.info['fiftyDayAverage']
+    stock.price = yahoo_data.info['previousClose']
+    stock.shortname = yahoo_data.info['shortName']
     try:
-        crypto.forwardpe = yahoo_data.info['forwardPE']
+        stock.forwardpe = yahoo_data.info['forwardPE']
     except:
         pass
 
-    db.add(crypto)
+    db.add(stock)
     db.commit()
 
-# async def create_crypto(background_tasks: BackgroundTasks):
+
+# async def create_stock(background_tasks: BackgroundTasks):
 @app.post("/add")
-def create_crypto(input: StockRequest, db: Session = Depends(get_db)):
+def create_stock(input: StockRequest, db: Session = Depends(get_db)):
     """
-    Create a new crptocurrency and save in the database.
+    Create a new stock and save in the database.
     """
-    crypto = StockItem()
-    crypto.ticker = input.ticker
+    stock = StockItem()
+    stock.ticker = input.ticker
 
-    db.add(crypto)
+    db.add(stock)
     db.commit()
 
-    fetch_crypto_data(crypto.id)
-    # background_tasks.add_task(fetch_crypto_data, crypto.id)
+    fetch_stock_data(stock.id)
 
     return {
         "code": "success",
@@ -65,9 +64,9 @@ def create_crypto(input: StockRequest, db: Session = Depends(get_db)):
 
 
 @app.post("/delete")
-async def delete_crypto(input: StockRequest, db: Session = Depends(get_db)):
+async def delete_stock(input: StockRequest, db: Session = Depends(get_db)):
     """
-    Delete an item from the crypto database.
+    Delete an item from the stock database.
     """
 
     delete_item = db.query(StockItem).filter(
