@@ -1,6 +1,6 @@
 # Stocks-Analysis-App
 
-A CRUD streamlit app with FastAPI backend for US stocks screening and analysis.
+A CRUD streamlit app with FastAPI backend for US stocks screening and analysis. Stock data is imported from the [yfinance](https://pypi.org/project/yfinance/) library.
 
 ### Step 1. Set up environment
 ```
