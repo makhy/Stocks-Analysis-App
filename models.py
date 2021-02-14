@@ -3,8 +3,8 @@ from sqlalchemy.orm import relationship
 
 from database import Base
 
-class CryptoItem(Base):
-    __tablename__ = "cryptocurrencies"
+class StockItem(Base):
+    __tablename__ = "Stocks"
 
     id = Column(Integer, primary_key=True, index=True)
     ticker = Column(String, unique=True)
@@ -12,3 +12,4 @@ class CryptoItem(Base):
     price = Column(Numeric(10,2))
     ma50 = Column(Numeric(10,2))
     ma200 = Column(Numeric(10,2))
+    forwardpe = Column(Numeric(10,2))

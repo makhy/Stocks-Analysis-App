@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine
-from models import CryptoItem
+from models import StockItem
 
 app = FastAPI()
 
@@ -13,7 +13,7 @@ models.Base.metadata.create_all(bind=engine)
 
 # templates = Jinja2Templates(directory="templates")
 
-class CryptoRequest(BaseModel):
+class StockRequest(BaseModel):
     ticker: str
 
 
@@ -27,7 +27,7 @@ def get_db():
 
 def fetch_crypto_data(id: int):
     db = SessionLocal()
-    crypto = db.query(CryptoItem).filter(CryptoItem.id == id).first()
+    crypto = db.query(StockItem).filter(StockItem.id == id).first()
 
     yahoo_data = yf.Ticker(crypto.ticker)
 
@@ -35,43 +35,48 @@ def fetch_crypto_data(id: int):
     crypto.ma50 = yahoo_data.info['fiftyDayAverage']
     crypto.price = yahoo_data.info['previousClose']
     crypto.shortname = yahoo_data.info['shortName']
-    # crypto.ticker = yahoo_data.info['symbol']
+    try:
+        crypto.forwardpe = yahoo_data.info['forwardPE']
+    except:
+        pass
 
     db.add(crypto)
     db.commit()
 
+# async def create_crypto(background_tasks: BackgroundTasks):
 @app.post("/add")
-async def create_crypto(input: CryptoRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+def create_crypto(input: StockRequest, db: Session = Depends(get_db)):
     """
     Create a new crptocurrency and save in the database.
     """
-    crypto = CryptoItem()
+    crypto = StockItem()
     crypto.ticker = input.ticker
 
     db.add(crypto)
     db.commit()
 
-    background_tasks.add_task(fetch_crypto_data, crypto.id)
+    fetch_crypto_data(crypto.id)
+    # background_tasks.add_task(fetch_crypto_data, crypto.id)
 
     return {
         "code": "success",
-        "message": "crypto currency created"
+        "message": "stock created"
     }
 
 
 @app.post("/delete")
-async def delete_crypto(input: CryptoRequest, db: Session = Depends(get_db)):
+async def delete_crypto(input: StockRequest, db: Session = Depends(get_db)):
     """
     Delete an item from the crypto database.
     """
 
-    delete_item = db.query(CryptoItem).filter(
-        CryptoItem.ticker == input.ticker).first()
+    delete_item = db.query(StockItem).filter(
+        StockItem.ticker == input.ticker).first()
 
     db.delete(delete_item)
     db.commit()
 
     return {
         "code": "success",
-        "message": "crypto currency deleted"
+        "message": "stock deleted"
     }
