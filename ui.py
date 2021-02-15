@@ -3,36 +3,19 @@ import requests
 import json
 import sys
 import yfinance as yf
-from database import SessionLocal, engine
-from models import StockItem
 import pandas as pd
 import altair as alt
 
 st.set_page_config(page_title="Stock Analysis")
 
 # FastAPI endpoints for add and delete stocks
-add_backend = "http://127.0.0.1:8000/add"
-delete_backend = "http://127.0.0.1:8000/delete"
+backend = "http://127.0.0.1:8000/"
 
 def post_request(ticker, backend):
     json_data = json.dumps({"ticker": ticker})
     response = requests.post(
         backend, data=json_data
     )
-
-def convert_data_to_df():
-    db = SessionLocal()
-    stocks = db.query(StockItem)
-    stock_table = {
-        "Ticker": [item.ticker for item in stocks],
-        "Name": [item.shortname for item in stocks],
-        "Price": [item.price for item in stocks],
-        "50 Days MA": [item.ma50 for item in stocks],
-        "200 Days MA": [item.ma200 for item in stocks],
-        "Forward PE": [item.forwardpe for item in stocks]
-    }
-    db.close()
-    return stock_table
 
 st.title("Stocks Screening & Analysis")
 
@@ -53,20 +36,22 @@ remove_ticker = st.sidebar.text_input("Remove stock by ticker")
 # for adding stocks
 if input_ticker:
     try:
-        post_request(input_ticker, add_backend)
+        post_request(input_ticker, f"{backend}add")
     except:
         st.sidebar.write("Ticker isn't correct. Try again.")
 
 if remove_ticker:
 
     try:
-        post_request(remove_ticker, delete_backend)
+        post_request(remove_ticker, f"{backend}delete")
     except:
         st.sidebar.write("Ticker isn't correct. Try again.")
 
-stock_table = convert_data_to_df()
+response = requests.post(f"{backend}table").json()
+stocks = json.loads(response)['stocks']
 
-df = pd.DataFrame(stock_table, columns=[
+
+df = pd.DataFrame(stocks, columns=[
                   'Ticker', 'Name', 'Price', '50 Days MA', '200 Days MA', 'Forward PE'])
 
 if st.sidebar.checkbox("Above 50 Days Moving Average"):
@@ -77,15 +62,8 @@ if st.sidebar.checkbox("Above 200 Days Moving Average"):
 
 # Update table to show the latest data from yFinance
 if st.sidebar.button("Update table"):
-    ticker_list = list(df['Ticker']) # store existing ticker in list
-    db = SessionLocal()
-    engine.execute('DELETE FROM Stocks') # delete all data from table
-    for tick in ticker_list:
-        json_input = json.dumps({"ticker": tick})
-        response = requests.post(
-            add_backend, data=json_input
-        )
-    db.commit()
+    ticker_list = str(list(df['Ticker'])).strip() # store existing ticker in list
+    response = post_request(ticker_list, f"{backend}update")
 
 
 st.write(df)

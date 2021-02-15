@@ -1,11 +1,14 @@
 import yfinance as yf
 import models
+import simplejson as json
 from fastapi import FastAPI, Request, Depends, BackgroundTasks
-from fastapi.templating import Jinja2Templates
+import requests
+from typing import List
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine
 from models import StockItem
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
@@ -14,7 +17,9 @@ models.Base.metadata.create_all(bind=engine)
 
 class StockRequest(BaseModel):
     ticker: str
-
+# 
+# class ItemList(BaseModel):
+#     ticker_list: str
 
 def get_db():
     try:
@@ -42,6 +47,23 @@ def fetch_stock_data(id: int):
     db.add(stock)
     db.commit()
 
+@app.post("/table")
+def get_stocks_table(request: Request, db: Session=Depends(get_db)):
+    """
+    Reads the stocks table from the sqlite database.
+    """
+    stocks = db.query(StockItem)
+    stock_table = {
+        "Ticker": [item.ticker for item in stocks],
+        "Name": [item.shortname for item in stocks],
+        "Price": [item.price for item in stocks],
+        "50 Days MA": [item.ma50 for item in stocks],
+        "200 Days MA": [item.ma200 for item in stocks],
+        "Forward PE": [item.forwardpe for item in stocks]
+    }
+
+    db.close()
+    return JSONResponse(content=json.dumps({"stocks": stock_table}))
 
 # async def create_stock(background_tasks: BackgroundTasks):
 @app.post("/add")
@@ -78,4 +100,23 @@ async def delete_stock(input: StockRequest, db: Session = Depends(get_db)):
     return {
         "code": "success",
         "message": "stock deleted"
+    }
+
+
+@app.post("/update")
+def update_table(input: StockRequest, db: Session = Depends(get_db)):
+
+    engine.execute('DELETE FROM Stocks') # delete all data from table
+    for tick in eval(input.ticker):
+        stock = StockItem()
+        stock.ticker = tick
+
+        db.add(stock)
+        db.commit()
+
+        fetch_stock_data(stock.id)
+
+    return {
+        "code": "success",
+        "message": "stock table updated"
     }
