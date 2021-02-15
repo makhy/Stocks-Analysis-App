@@ -17,9 +17,9 @@ uvivorn main:app --reload
 streamlit run ui.py
 ```
 
-### Snapshot:
+### Demo:
 
-![](imgs/screenshot1.png)
+![](imgs/stocks_app_video.gif)
 
 ### References:
 
