@@ -1,8 +1,0 @@
-fastapi
-uvicorn
-jinja2
-yfinance
-sqlalchemy
-streamlit >=0.76.0, <0.80.0
-altair
-simplejson

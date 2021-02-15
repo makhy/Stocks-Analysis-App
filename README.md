@@ -2,19 +2,20 @@
 
 A CRUD streamlit app with FastAPI backend for US stocks screening and analysis. Stock data is imported from the [yfinance](https://pypi.org/project/yfinance/) library.
 
-### Step 1. Set up environment
+### Set up environment
 ```
 source venv/bin/activate
 ```
 
-### Step 2. Run FastAPI server
+### Run Docker
 ```
-uvivorn main:app --reload
+docker-compose build
+docker-compose up
 ```
 
-### Step 3. Run Streamlit App UI
+### Access Streamlit App
 ```
-streamlit run ui.py
+http://localhost:8501
 ```
 
 ### Demo:

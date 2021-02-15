@@ -1,14 +1,13 @@
-import yfinance as yf
-import models
-import simplejson as json
-from fastapi import FastAPI, Request, Depends, BackgroundTasks
 import requests
-from typing import List
+import yfinance as yf
+import simplejson as json
+from fastapi import FastAPI, Request, Depends
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine
+import models
 from models import StockItem
-from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
@@ -17,9 +16,7 @@ models.Base.metadata.create_all(bind=engine)
 
 class StockRequest(BaseModel):
     ticker: str
-# 
-# class ItemList(BaseModel):
-#     ticker_list: str
+
 
 def get_db():
     try:
@@ -30,6 +27,9 @@ def get_db():
 
 
 def fetch_stock_data(id: int):
+    """
+    Import stocks data from yfinance API
+    """
     db = SessionLocal()
     stock = db.query(StockItem).filter(StockItem.id == id).first()
 
@@ -47,8 +47,9 @@ def fetch_stock_data(id: int):
     db.add(stock)
     db.commit()
 
+
 @app.post("/table")
-def get_stocks_table(request: Request, db: Session=Depends(get_db)):
+def get_stocks_table(request: Request, db: Session = Depends(get_db)):
     """
     Reads the stocks table from the sqlite database.
     """
@@ -105,8 +106,11 @@ async def delete_stock(input: StockRequest, db: Session = Depends(get_db)):
 
 @app.post("/update")
 def update_table(input: StockRequest, db: Session = Depends(get_db)):
+    """
+    Replace existing stocks data with the latest data from yfinance
+    """
 
-    engine.execute('DELETE FROM Stocks') # delete all data from table
+    engine.execute('DELETE FROM Stocks')  # delete all data from table
     for tick in eval(input.ticker):
         stock = StockItem()
         stock.ticker = tick

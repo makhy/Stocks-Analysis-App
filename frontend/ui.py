@@ -9,7 +9,7 @@ import altair as alt
 st.set_page_config(page_title="Stock Analysis")
 
 # FastAPI endpoints for add and delete stocks
-backend = "http://127.0.0.1:8000/"
+backend = "http://fastapi:8000/"
 
 def post_request(ticker, backend):
     json_data = json.dumps({"ticker": ticker})
@@ -19,7 +19,7 @@ def post_request(ticker, backend):
 
 st.title("Stocks Screening & Analysis")
 
-st.sidebar.image("imgs/stock-market-icon-png-28.png", width=100,
+st.sidebar.image("http://i.ibb.co/W0kCzkV/stock-market-icon-png-28.png", width=100,
                 channels='BGR', output_format='PNG')
 
 st.sidebar.header("Stocks Screening & Analysis")
