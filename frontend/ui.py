@@ -47,7 +47,8 @@ if remove_ticker:
     except:
         st.sidebar.write("Ticker isn't correct. Try again.")
 
-response = requests.post(f"{backend}table").json()
+# response = requests.post(f"{backend}table").json()
+response = requests.get(backend).json()
 stocks = json.loads(response)['stocks']
 
 

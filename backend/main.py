@@ -48,7 +48,7 @@ def fetch_stock_data(id: int):
     db.commit()
 
 
-@app.post("/table")
+@app.get("/")
 def get_stocks_table(request: Request, db: Session = Depends(get_db)):
     """
     Reads the stocks table from the sqlite database.
@@ -63,7 +63,7 @@ def get_stocks_table(request: Request, db: Session = Depends(get_db)):
         "Forward PE": [item.forwardpe for item in stocks]
     }
 
-    db.close()
+    # db.close()
     return JSONResponse(content=json.dumps({"stocks": stock_table}))
 
 # async def create_stock(background_tasks: BackgroundTasks):
