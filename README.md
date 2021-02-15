@@ -19,7 +19,7 @@ streamlit run ui.py
 
 ### Demo:
 
-![](imgs/stocks_app_video.gif)
+![](imgs/stock-demo-2x.gif)
 
 ### References:
 
